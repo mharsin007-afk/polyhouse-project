@@ -47,4 +47,6 @@ This project stores and analyzes polyhouse sensor data such as:
 ```bash
 
 py src/smoke\_test.py
+## Project Goal
+Monitor polyhouse environmental conditions for mushroom cultivation.
 
