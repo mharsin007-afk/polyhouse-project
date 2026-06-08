@@ -1,52 +1,207 @@
-\# Polyhouse Sensor Project
+# Polyhouse Sensor Project
 
+## Project Goal
 
+The goal of this project is to monitor polyhouse environmental conditions for mushroom cultivation and analyze how factors such as temperature, humidity, and CO₂ concentration affect mushroom yield.
 
-\## Project Structure
+## Dataset
 
+The dataset contains sensor readings collected from a mushroom polyhouse environment.
 
+### Features
 
+* Timestamp
+* Temperature (°C)
+* Humidity (%)
+* CO₂ Concentration (ppm)
+* Yield (kg)
+
+## Project Structure
+
+```text
+polyhouse-project/
 ├── data/
-
-│   └── raw/
-
-├── notebooks/
-
+│   ├── raw/
+│   └── interim/
+├── reports/
+│   ├── figures/
+│   ├── data_quality.md
+│   └── eda_notes.md
 ├── src/
-
-│   └── smoke\_test.py
-
+│   ├── ingest.py
+│   ├── clean.py
+│   └── eda.py
 ├── models/
-
 └── README.md
+```
 
+## Project Pipeline
 
+```text
+Raw CSV Data
+      ↓
+Data Ingestion
+      ↓
+Data Quality Assessment
+      ↓
+Data Cleaning
+      ↓
+Cleaned Dataset
+      ↓
+Exploratory Data Analysis
+      ↓
+Visualizations & Insights
+```
 
-\## Description
+---
 
+## Task 1: Data Ingestion
 
+### Objective
 
-This project stores and analyzes polyhouse sensor data such as:
+Load raw sensor data and prepare it for processing.
 
+### Work Completed
 
+* Loaded CSV data using Pandas.
+* Parsed timestamp values.
+* Verified data types.
+* Stored processed data in Parquet format.
 
-\- Temperature
+### Output
 
-\- Humidity
+* `src/ingest.py`
+* `data/interim/01_loaded.parquet`
 
-\- CO₂ levels
+---
 
-\- Yield
+## Task 2: Data Quality Assessment & Data Cleaning
 
+### Objective
 
+Identify missing values, invalid sensor readings, and data quality issues before analysis.
 
-\## Run
+### Data Quality Checks
 
+The following checks were performed:
 
+* Missing value analysis
+* Data type verification
+* Range validation
+* Summary statistics generation
+* Detection of invalid observations
+
+### Cleaning Rules
+
+| Column        | Valid Range          |
+| ------------- | -------------------- |
+| temperature_c | 10–35 °C             |
+| humidity_pct  | 50–100 %             |
+| co2_ppm       | ≥ 400 ppm            |
+| yield_kg      | Positive values only |
+
+### Work Completed
+
+* Audited missing values.
+* Removed invalid observations.
+* Applied agritech-based validation rules.
+* Generated a cleaned dataset.
+* Documented null counts before and after cleaning.
+
+### Outputs
+
+* `src/clean.py`
+* `reports/data_quality.md`
+* `data/interim/02_cleaned.parquet`
+
+---
+
+## Task 3: Exploratory Data Analysis (EDA)
+
+### Objective
+
+Explore relationships between environmental variables and mushroom yield.
+
+### Visualizations Generated
+
+#### Correlation Heatmap
+
+Analyzed correlations among:
+
+* Temperature
+* Humidity
+* CO₂
+* Yield
+
+#### Scatter Plots
+
+Generated scatter plots for:
+
+* Humidity vs Yield
+* Temperature vs Yield
+* CO₂ vs Yield
+
+### Key Findings
+
+* Temperature showed the strongest positive correlation with yield.
+* Humidity showed a moderate positive relationship with yield.
+* CO₂ concentration showed a weak negative relationship with yield.
+
+### Outputs
+
+* `src/eda.py`
+* `reports/eda_notes.md`
+* `reports/figures/corr_heatmap.png`
+* `reports/figures/scatter_yield.png`
+
+---
+
+## Technologies Used
+
+* Python
+* Pandas
+* Matplotlib
+* Parquet
+* Git
+* GitHub
+
+---
+
+## How to Run
+
+### Data Ingestion
 
 ```bash
+python src/ingest.py
+```
 
-py src/smoke\_test.py
-## Project Goal
-Monitor polyhouse environmental conditions for mushroom cultivation.
+### Data Cleaning
 
+```bash
+python src/clean.py
+```
+
+### Exploratory Data Analysis
+
+```bash
+python src/eda.py
+```
+
+---
+
+## Current Status
+
+### Completed
+
+* Project Setup
+* Git & GitHub Configuration
+* Data Ingestion
+* Data Quality Assessment
+* Data Cleaning
+* Data Quality Reporting
+* Exploratory Data Analysis
+* Data Visualization
+
+
+
+Polyhouse Mushroom Yield Analysis Project
