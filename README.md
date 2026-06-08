@@ -205,3 +205,28 @@ python src/eda.py
 
 
 Polyhouse Mushroom Yield Analysis Project
+
+
+## Feature Engineering
+
+### Input Features
+
+| Feature | Description |
+|----------|-------------|
+| temperature_c | Polyhouse temperature in °C |
+| humidity_pct | Relative humidity (%) |
+| co2_ppm | Carbon dioxide concentration (ppm) |
+| temp_humid_interaction | Interaction feature combining temperature and humidity |
+
+### Engineered Feature Formula
+
+temp_humid_interaction = temperature_c × humidity_pct / 100
+
+### Target Variable
+
+yield_kg = Mushroom yield in kilograms
+
+### Scaling
+
+Features were normalized using MinMaxScaler to transform values into the range [0, 1].
+
