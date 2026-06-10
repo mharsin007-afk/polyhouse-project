@@ -230,3 +230,28 @@ yield_kg = Mushroom yield in kilograms
 
 Features were normalized using MinMaxScaler to transform values into the range [0, 1].
 
+## Train/Test Split
+
+The dataset was first sorted chronologically using the `timestamp` column to preserve temporal order and prevent data leakage.
+
+An 80/20 chronological split was applied:
+
+### Training Set
+
+* Rows: 292 (80%)
+* Date Range: 2024-01-01 to 2024-10-18
+
+### Test Set
+
+* Rows: 73 (20%)
+* Date Range: 2024-10-19 to 2024-12-30
+
+### Data Leakage Prevention
+
+To ensure realistic forecasting performance, all training observations occur before the test period. A validation check confirmed that the earliest test timestamp is later than the latest training timestamp.
+
+### Feature Scaling
+
+A `MinMaxScaler` was fitted using only the training data. The fitted scaler was then used to transform both training and test features, preventing leakage of future information from the test set.
+
+
