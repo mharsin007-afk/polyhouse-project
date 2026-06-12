@@ -1,16 +1,16 @@
 # Linear Regression Results
 
 ## Train Metrics
-- MAE: 0.415 kg
-- RMSE: 0.520 kg
-- R²: 0.396
+- MAE: 0.424 kg
+- RMSE: 0.537 kg
+- R²: 0.345
 
 ## Test Metrics
-- MAE: 0.419 kg
-- RMSE: 0.535 kg
-- R²: 0.427
+- MAE: 0.470 kg
+- RMSE: 0.592 kg
+- R²: 0.289
 
 ## Coefficients
-- temperature_c: 1.8942
-- humidity_pct: 0.9592
-- co2_ppm: -1.2132
+- temperature_c: 1.9915
+- humidity_pct: 1.0524
+- co2_ppm: -1.2200
