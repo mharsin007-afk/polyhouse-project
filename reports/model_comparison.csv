@@ -1,0 +1,4 @@
+Model,CV_MAE,Test_MAE,RMSE,R2,Interpretability
+Linear Regression,0.44,0.47,0.592,0.289,High
+Random Forest,0.474,0.449,0.58,0.328,Medium
+Tuned Random Forest,0.465,0.445,0.562,0.369,Medium-Low
