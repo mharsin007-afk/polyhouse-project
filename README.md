@@ -254,4 +254,19 @@ To ensure realistic forecasting performance, all training observations occur bef
 
 A `MinMaxScaler` was fitted using only the training data. The fitted scaler was then used to transform both training and test features, preventing leakage of future information from the test set.
 
+## Run Inference
+
+Load the deployment model and predict mushroom yield:
+
+```python
+from src.predict import predict_yield
+
+prediction = predict_yield(
+    temperature_c=22,
+    humidity_pct=88,
+    co2_ppm=920
+)
+
+print(prediction)
+
 
