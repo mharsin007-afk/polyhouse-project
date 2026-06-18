@@ -1,8 +1,10 @@
-import pandas as pd
-import numpy as np
+
 import json
 import time
 import joblib
+
+import numpy as np
+import pandas as pd
 
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import GridSearchCV, TimeSeriesSplit
@@ -26,7 +28,27 @@ y_train = train["yield_kg"]
 X_test = test.drop(columns=["timestamp", "yield_kg"])
 y_test = test["yield_kg"]
 
-# TimeSeriesSplit
+# Load previously fitted scaler
+scaler = joblib.load(
+    "models/minmax_scaler_train.joblib"
+)
+
+# Scale features
+X_train_scaled = scaler.transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+
+# Preserve feature names
+X_train_scaled = pd.DataFrame(
+    X_train_scaled,
+    columns=X_train.columns
+)
+
+X_test_scaled = pd.DataFrame(
+    X_test_scaled,
+    columns=X_test.columns
+)
+
+# Time series cross-validation
 tscv = TimeSeriesSplit(n_splits=3)
 
 # Parameter grid
@@ -42,7 +64,7 @@ rf = RandomForestRegressor(
     n_jobs=-1
 )
 
-# Grid Search
+# Grid search
 search = GridSearchCV(
     estimator=rf,
     param_grid=param_grid,
@@ -52,9 +74,9 @@ search = GridSearchCV(
     refit=True
 )
 
-search.fit(X_train, y_train)
+# Train model on scaled data
+search.fit(X_train_scaled, y_train)
 
-# Best results
 print("Best Parameters:")
 print(search.best_params_)
 
@@ -62,8 +84,8 @@ print(f"\nBest CV MAE: {-search.best_score_:.3f}")
 
 best_model = search.best_estimator_
 
-# Test evaluation
-pred = best_model.predict(X_test)
+# Evaluate on scaled test data
+pred = best_model.predict(X_test_scaled)
 
 mae = mean_absolute_error(y_test, pred)
 rmse = np.sqrt(mean_squared_error(y_test, pred))
@@ -74,11 +96,11 @@ print(f"MAE: {mae:.3f}")
 print(f"RMSE: {rmse:.3f}")
 print(f"R²: {r2:.3f}")
 
-# Save best params
+# Save best parameters
 with open("models/rf_best_params.json", "w") as f:
     json.dump(search.best_params_, f, indent=2)
 
-# Save model
+# Save trained model
 joblib.dump(
     best_model,
     "models/random_forest_tuned.joblib"
@@ -95,3 +117,4 @@ cv_results.to_csv(
 runtime = time.time() - start_time
 
 print(f"\nRuntime: {runtime:.2f} seconds")
+
