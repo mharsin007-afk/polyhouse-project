@@ -23,20 +23,66 @@ def load_artifacts():
     return model, scaler, feature_cols
 
 
-def predict_yield(
-    model,
-    scaler,
-    feature_cols,
-    temperature_c: float,
-    humidity_pct: float,
-    co2_ppm: float
-) -> float:
+def predict_yield(*args, **kwargs) -> float:
+    """
+    Supports two calling styles:
+
+    New style:
+        predict_yield(temperature_c, humidity_pct, co2_ppm)
+
+    Old style:
+        predict_yield(
+            model,
+            scaler,
+            feature_cols,
+            temperature_c,
+            humidity_pct,
+            co2_ppm
+        )
+    """
+
+    # New style: predict_yield(temp, humidity, co2)
+    if len(args) == 3:
+        model, scaler, feature_cols = load_artifacts()
+        temperature_c, humidity_pct, co2_ppm = args
+
+    # Old style: predict_yield(model, scaler, feature_cols, temp, humidity, co2)
+    elif len(args) == 6:
+        (
+            model,
+            scaler,
+            feature_cols,
+            temperature_c,
+            humidity_pct,
+            co2_ppm,
+        ) = args
+
+    # Keyword arguments
+    elif kwargs:
+        if {"model", "scaler", "feature_cols"}.issubset(kwargs):
+            model = kwargs["model"]
+            scaler = kwargs["scaler"]
+            feature_cols = kwargs["feature_cols"]
+        else:
+            model, scaler, feature_cols = load_artifacts()
+
+        temperature_c = kwargs["temperature_c"]
+        humidity_pct = kwargs["humidity_pct"]
+        co2_ppm = kwargs["co2_ppm"]
+
+    else:
+        raise TypeError(
+            "predict_yield expects either "
+            "(temperature_c, humidity_pct, co2_ppm) "
+            "or "
+            "(model, scaler, feature_cols, temperature_c, humidity_pct, co2_ppm)"
+        )
 
     row = pd.DataFrame(
         {
             "temperature_c": [temperature_c],
             "humidity_pct": [humidity_pct],
-            "co2_ppm": [co2_ppm]
+            "co2_ppm": [co2_ppm],
         }
     )
 
@@ -46,44 +92,15 @@ def predict_yield(
 
     scaled_df = pd.DataFrame(
         scaled,
-        columns=feature_cols
+        columns=feature_cols,
     )
 
     prediction = model.predict(scaled_df)
 
     return float(prediction[0])
+
+
 if __name__ == "__main__":
-    model, scaler, feature_cols = load_artifacts()
-
-    print(
-        predict_yield(
-            model,
-            scaler,
-            feature_cols,
-            temperature_c=15.0,
-            humidity_pct=60.0,
-            co2_ppm=900.0
-        )
-    )
-
-    print(
-        predict_yield(
-            model,
-            scaler,
-            feature_cols,
-            temperature_c=22.0,
-            humidity_pct=88.0,
-            co2_ppm=900.0
-        )
-    )
-
-    print(
-        predict_yield(
-            model,
-            scaler,
-            feature_cols,
-            temperature_c=30.0,
-            humidity_pct=95.0,
-            co2_ppm=900.0
-        )
-    )
+    print(predict_yield(15.0, 60.0, 900.0))
+    print(predict_yield(22.0, 88.0, 900.0))
+    print(predict_yield(30.0, 95.0, 900.0))

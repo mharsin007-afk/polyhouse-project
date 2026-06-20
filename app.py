@@ -1,9 +1,14 @@
-
 import numpy as np
 import pandas as pd
 import streamlit as st
 
-from src.predict import load_artifacts, predict_yield
+try:
+    from src.predict import load_artifacts, predict_yield
+except FileNotFoundError:
+    st.error(
+        "⚠️ Model artifacts are missing. Run the training pipeline in `src/` first."
+    )
+    st.stop()
 
 # -------------------------------------------------------------------
 # Page configuration
@@ -40,7 +45,13 @@ def get_artifacts():
     return load_artifacts()
 
 
-model, scaler, feature_cols = get_artifacts()
+try:
+    model, scaler, feature_cols = get_artifacts()
+except FileNotFoundError:
+    st.error(
+        "⚠️ Required model files are missing. Please retrain the model."
+    )
+    st.stop()
 
 # -------------------------------------------------------------------
 # Header
@@ -125,60 +136,65 @@ if co2 < 500 or co2 > 1500:
 
 if st.button("Predict Yield", use_container_width=True):
 
-    prediction = predict_yield(
-        model,
-        scaler,
-        feature_cols,
-        temp,
-        humid,
-        co2
-    )
+    try:
+        with st.spinner("Generating prediction..."):
 
-    col1, col2 = st.columns(2)
+            prediction = predict_yield(
+                temp,
+                humid,
+                co2
+            )
 
-    with col1:
-        st.metric(
-            label="Estimated Daily Yield",
-            value=f"{prediction:.2f} kg"
+            humid_range = np.linspace(70, 98, 29)
+
+            preds = [
+                predict_yield(
+                    temp,
+                    h,
+                    co2
+                )
+                for h in humid_range
+            ]
+
+        col1, col2 = st.columns(2)
+
+        with col1:
+            st.metric(
+                label="Estimated Daily Yield",
+                value=f"{prediction:.2f} kg"
+            )
+
+        with col2:
+            st.metric(
+                label="Humidity",
+                value=f"{humid:.1f}%"
+            )
+
+        st.divider()
+
+        st.subheader("What-if Analysis: Humidity Sweep")
+
+        chart_df = pd.DataFrame(
+            {
+                "Humidity (%)": humid_range,
+                "Predicted Yield (kg)": preds
+            }
         )
 
-    with col2:
-        st.metric(
-            label="Humidity",
-            value=f"{humid:.1f}%"
+        st.line_chart(
+            chart_df,
+            x="Humidity (%)",
+            y="Predicted Yield (kg)",
+            use_container_width=True
         )
 
-    st.divider()
-
-    st.subheader("What-if Analysis: Humidity Sweep")
-
-    humid_range = np.linspace(70, 98, 29)
-
-    preds = [
-        predict_yield(
-            model,
-            scaler,
-            feature_cols,
-            temp,
-            h,
-            co2
+    except FileNotFoundError:
+        st.error(
+            "⚠️ Model artifacts are missing. Please retrain the model."
         )
-        for h in humid_range
-    ]
 
-    chart_df = pd.DataFrame(
-        {
-            "Humidity (%)": humid_range,
-            "Predicted Yield (kg)": preds
-        }
-    )
-
-    st.line_chart(
-        chart_df,
-        x="Humidity (%)",
-        y="Predicted Yield (kg)",
-        use_container_width=True
-    )
+    except Exception as e:
+        st.error(f"Prediction failed: {e}")
 
 # -------------------------------------------------------------------
 # Model metadata
@@ -201,4 +217,3 @@ with st.expander("Model Information"):
 st.caption(
     "Zelbytes Agritech • Decision support for controlled-environment mushroom cultivation"
 )
-
