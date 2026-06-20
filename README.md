@@ -1,41 +1,95 @@
-# Polyhouse Sensor Project
+# 🍄 Polyhouse Sensor Project: Mushroom Yield Forecasting
+
+## Live Demo
+
+🌐 **Streamlit Application:** `PASTE_YOUR_STREAMLIT_URL_HERE`
+
+---
+
+## Project Overview
+
+This project analyzes environmental sensor data collected from a mushroom polyhouse to forecast daily mushroom yield.
+
+The system monitors key growing conditions such as temperature, humidity, and CO₂ concentration and uses machine learning to estimate yield under different environmental scenarios.
+
+The project demonstrates an end-to-end machine learning workflow, including data ingestion, cleaning, exploratory analysis, feature engineering, model training, validation, testing, and cloud deployment.
+
+---
 
 ## Project Goal
 
-The goal of this project is to monitor polyhouse environmental conditions for mushroom cultivation and analyze how factors such as temperature, humidity, and CO₂ concentration affect mushroom yield.
+Develop a decision-support tool for controlled-environment mushroom cultivation by predicting daily yield from polyhouse sensor readings.
+
+---
 
 ## Dataset
 
-The dataset contains sensor readings collected from a mushroom polyhouse environment.
+The dataset contains time-series sensor readings collected from a mushroom polyhouse environment.
 
 ### Features
 
-* Timestamp
-* Temperature (°C)
-* Humidity (%)
-* CO₂ Concentration (ppm)
-* Yield (kg)
+| Feature         | Description                        |
+| --------------- | ---------------------------------- |
+| `timestamp`     | Sensor observation timestamp       |
+| `temperature_c` | Temperature (°C)                   |
+| `humidity_pct`  | Relative humidity (%)              |
+| `co2_ppm`       | Carbon dioxide concentration (ppm) |
+| `yield_kg`      | Daily mushroom yield (kg)          |
+
+---
+
+## Live Prediction Example
+
+| Temperature (°C) | Humidity (%) | CO₂ (ppm) | Predicted Yield (kg) |
+| ---------------- | ------------ | --------- | -------------------- |
+| 22               | 88           | 920       | 17.00                |
+
+---
 
 ## Project Structure
 
 ```text
 polyhouse-project/
+├── .streamlit/
+│   └── config.toml
 ├── data/
 │   ├── raw/
-│   └── interim/
+│   ├── interim/
+│   └── processed/
+├── models/
+│   ├── feature_cols.json
+│   ├── minmax_scaler_train.joblib
+│   └── random_forest_tuned.joblib
 ├── reports/
 │   ├── figures/
 │   ├── data_quality.md
-│   └── eda_notes.md
+│   ├── eda_notes.md
+│   ├── metrics_linear.md
+│   ├── model_comparison.csv
+│   └── test_scenarios.md
 ├── src/
 │   ├── ingest.py
 │   ├── clean.py
-│   └── eda.py
-├── models/
+│   ├── eda.py
+│   ├── features.py
+│   ├── split_scale.py
+│   ├── train_linear.py
+│   ├── train_random_forest.py
+│   ├── grid_search_rf.py
+│   ├── cross_validation.py
+│   ├── model_comparison.py
+│   └── predict.py
+├── tests/
+│   └── test_predict.py
+├── app.py
+├── requirements.txt
+├── runtime.txt
 └── README.md
 ```
 
-## Project Pipeline
+---
+
+## Machine Learning Pipeline
 
 ```text
 Raw CSV Data
@@ -46,113 +100,189 @@ Data Quality Assessment
       ↓
 Data Cleaning
       ↓
-Cleaned Dataset
-      ↓
 Exploratory Data Analysis
       ↓
-Visualizations & Insights
+Feature Engineering
+      ↓
+Chronological Train/Test Split
+      ↓
+Feature Scaling
+      ↓
+Model Training
+      ↓
+Cross-Validation & Hyperparameter Tuning
+      ↓
+Model Evaluation
+      ↓
+Streamlit Deployment
 ```
 
 ---
 
-## Task 1: Data Ingestion
+## Data Cleaning Rules
 
-### Objective
-
-Load raw sensor data and prepare it for processing.
-
-### Work Completed
-
-* Loaded CSV data using Pandas.
-* Parsed timestamp values.
-* Verified data types.
-* Stored processed data in Parquet format.
-
-### Output
-
-* `src/ingest.py`
-* `data/interim/01_loaded.parquet`
-
----
-
-## Task 2: Data Quality Assessment & Data Cleaning
-
-### Objective
-
-Identify missing values, invalid sensor readings, and data quality issues before analysis.
-
-### Data Quality Checks
-
-The following checks were performed:
-
-* Missing value analysis
-* Data type verification
-* Range validation
-* Summary statistics generation
-* Detection of invalid observations
-
-### Cleaning Rules
-
-| Column        | Valid Range          |
+| Feature       | Valid Range          |
 | ------------- | -------------------- |
 | temperature_c | 10–35 °C             |
 | humidity_pct  | 50–100 %             |
-| co2_ppm       | ≥ 400 ppm            |
+| co2_ppm       | 400–2000 ppm         |
 | yield_kg      | Positive values only |
 
-### Work Completed
+Cleaning steps included:
 
-* Audited missing values.
-* Removed invalid observations.
-* Applied agritech-based validation rules.
-* Generated a cleaned dataset.
-* Documented null counts before and after cleaning.
-
-### Outputs
-
-* `src/clean.py`
-* `reports/data_quality.md`
-* `data/interim/02_cleaned.parquet`
+* Missing value analysis
+* Forward filling sensor gaps
+* Duplicate removal
+* Range validation
+* Invalid observation filtering
 
 ---
 
-## Task 3: Exploratory Data Analysis (EDA)
+## Feature Engineering
 
-### Objective
+### Input Features
 
-Explore relationships between environmental variables and mushroom yield.
+* `temperature_c`
+* `humidity_pct`
+* `co2_ppm`
 
-### Visualizations Generated
+### Engineered Feature
 
-#### Correlation Heatmap
+```text
+temp_humid_interaction = temperature_c × humidity_pct / 100
+```
 
-Analyzed correlations among:
+### Target Variable
 
-* Temperature
-* Humidity
-* CO₂
-* Yield
+```text
+yield_kg
+```
 
-#### Scatter Plots
+---
 
-Generated scatter plots for:
+## Train/Test Strategy
 
-* Humidity vs Yield
-* Temperature vs Yield
-* CO₂ vs Yield
+To prevent data leakage, the dataset was sorted chronologically before splitting.
 
-### Key Findings
+* Training set: 292 rows (80%)
+* Test set: 73 rows (20%)
 
-* Temperature showed the strongest positive correlation with yield.
-* Humidity showed a moderate positive relationship with yield.
-* CO₂ concentration showed a weak negative relationship with yield.
+### Training Period
 
-### Outputs
+2024-01-01 → 2024-10-18
 
-* `src/eda.py`
-* `reports/eda_notes.md`
-* `reports/figures/corr_heatmap.png`
-* `reports/figures/scatter_yield.png`
+### Testing Period
+
+2024-10-19 → 2024-12-30
+
+A `MinMaxScaler` was fitted only on the training data and reused for test and deployment data.
+
+---
+
+## Model Development
+
+The following models were evaluated:
+
+* Linear Regression
+* Random Forest Regressor
+* Tuned Random Forest Regressor
+
+### Champion Model
+
+**Tuned Random Forest Regressor**
+
+Best hyperparameters:
+
+```text
+max_depth = 8
+min_samples_leaf = 5
+n_estimators = 100
+```
+
+---
+
+## Model Performance
+
+| Metric    | Value    |
+| --------- | -------- |
+| Test MAE  | 0.445 kg |
+| Test RMSE | 0.562 kg |
+| Test R²   | 0.369    |
+
+---
+
+## Validation Scenarios
+
+| Scenario           | Temperature | Humidity | CO₂      | Predicted Yield |
+| ------------------ | ----------- | -------- | -------- | --------------- |
+| Optimal            | 22°C        | 88%      | 920 ppm  | 17.00 kg        |
+| Dry Spell          | 22°C        | 60%      | 920 ppm  | 16.94 kg        |
+| Heat Spike         | 32°C        | 88%      | 920 ppm  | 18.16 kg        |
+| Extreme CO₂        | 22°C        | 88%      | 1800 ppm | 16.76 kg        |
+| Multiple Stressors | 32°C        | 60%      | 1800 ppm | 18.05 kg        |
+
+Streamlit and CLI predictions matched exactly across all validation scenarios.
+
+---
+
+## Installation
+
+Clone the repository:
+
+```bash
+git clone https://github.com/mharsin007-afk/polyhouse-project.git
+cd polyhouse-project
+```
+
+Create a virtual environment:
+
+```bash
+python -m venv venv
+```
+
+Activate the environment:
+
+### Windows
+
+```bash
+venv\Scripts\activate
+```
+
+Install dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+Run the application:
+
+```bash
+streamlit run app.py
+```
+
+---
+
+## Run Inference
+
+```python
+from src.predict import predict_yield
+
+prediction = predict_yield(
+    22.0,
+    88.0,
+    920.0
+)
+
+print(f"Predicted Yield: {prediction:.2f} kg")
+```
+
+---
+
+## Run Tests
+
+```bash
+python -m pytest tests/
+```
 
 ---
 
@@ -160,113 +290,23 @@ Generated scatter plots for:
 
 * Python
 * Pandas
+* NumPy
+* Scikit-learn
 * Matplotlib
-* Parquet
+* Streamlit
+* Joblib
 * Git
 * GitHub
 
 ---
 
-## How to Run
+## Future Improvements
 
-### Data Ingestion
+* Integrate real-time sensor streaming
+* Add automated model retraining
+* Improve biological calibration with larger datasets
+* Add user authentication and role-based access
+* Deploy model monitoring dashboards
 
-```bash
-python src/ingest.py
 ```
-
-### Data Cleaning
-
-```bash
-python src/clean.py
 ```
-
-### Exploratory Data Analysis
-
-```bash
-python src/eda.py
-```
-
----
-
-## Current Status
-
-### Completed
-
-* Project Setup
-* Git & GitHub Configuration
-* Data Ingestion
-* Data Quality Assessment
-* Data Cleaning
-* Data Quality Reporting
-* Exploratory Data Analysis
-* Data Visualization
-
-
-
-Polyhouse Mushroom Yield Analysis Project
-
-
-## Feature Engineering
-
-### Input Features
-
-| Feature | Description |
-|----------|-------------|
-| temperature_c | Polyhouse temperature in °C |
-| humidity_pct | Relative humidity (%) |
-| co2_ppm | Carbon dioxide concentration (ppm) |
-| temp_humid_interaction | Interaction feature combining temperature and humidity |
-
-### Engineered Feature Formula
-
-temp_humid_interaction = temperature_c × humidity_pct / 100
-
-### Target Variable
-
-yield_kg = Mushroom yield in kilograms
-
-### Scaling
-
-Features were normalized using MinMaxScaler to transform values into the range [0, 1].
-
-## Train/Test Split
-
-The dataset was first sorted chronologically using the `timestamp` column to preserve temporal order and prevent data leakage.
-
-An 80/20 chronological split was applied:
-
-### Training Set
-
-* Rows: 292 (80%)
-* Date Range: 2024-01-01 to 2024-10-18
-
-### Test Set
-
-* Rows: 73 (20%)
-* Date Range: 2024-10-19 to 2024-12-30
-
-### Data Leakage Prevention
-
-To ensure realistic forecasting performance, all training observations occur before the test period. A validation check confirmed that the earliest test timestamp is later than the latest training timestamp.
-
-### Feature Scaling
-
-A `MinMaxScaler` was fitted using only the training data. The fitted scaler was then used to transform both training and test features, preventing leakage of future information from the test set.
-
-## Run Inference
-
-Load the deployment model and predict mushroom yield:
-
-```python
-from src.predict import predict_yield
-
-prediction = predict_yield(
-    temperature_c=22,
-    humidity_pct=88,
-    co2_ppm=920
-)
-
-print(prediction)
-
-
