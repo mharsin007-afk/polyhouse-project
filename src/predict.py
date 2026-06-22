@@ -4,6 +4,7 @@ from pathlib import Path
 import joblib
 import pandas as pd
 
+from logger import log_prediction
 MODEL_DIR = Path("models")
 
 
@@ -95,9 +96,19 @@ def predict_yield(*args, **kwargs) -> float:
         columns=feature_cols,
     )
 
-    prediction = model.predict(scaled_df)
+    prediction = float(model.predict(scaled_df)[0])
 
-    return float(prediction[0])
+    try:
+        log_prediction(
+            temperature_c,
+            humidity_pct,
+            co2_ppm,
+            prediction,
+        )
+    except Exception as e:
+        print(f"Logging failed: {e}")
+
+    return prediction
 
 
 if __name__ == "__main__":

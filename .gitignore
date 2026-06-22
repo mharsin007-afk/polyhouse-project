@@ -5,8 +5,12 @@ __pycache__/
 data/raw/*.csv
 .gradle/
 *.log
+
 # Processed datasets
 data/processed/*.csv
 
 # Saved models
 models/*.joblib
+
+# Prediction logs
+logs/
